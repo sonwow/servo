@@ -27,9 +27,10 @@ use newcss::color::rgb;
 use newcss::complete::CompleteStyle;
 use newcss::units::{Em, Px};
 use newcss::units::{Cursive, Fantasy, Monospace, SansSerif, Serif};
+use newcss::units::{XXSmall};
 use newcss::values::{CSSClearNone, CSSClearLeft, CSSClearRight, CSSClearBoth};
 use newcss::values::{CSSFontFamilyFamilyName, CSSFontFamilyGenericFamily};
-use newcss::values::{CSSFontSizeLength, CSSFontStyleItalic, CSSFontStyleNormal};
+use newcss::values::{CSSFontSizeAbsoluteSize, CSSFontSizeLength, CSSFontStyleItalic, CSSFontStyleNormal};
 use newcss::values::{CSSFontStyleOblique, CSSTextAlign, CSSTextDecoration, CSSLineHeight};
 use newcss::values::{CSSTextDecorationNone, CSSFloatNone, CSSPositionStatic};
 use newcss::values::{CSSDisplayInlineBlock, CSSDisplayInlineTable};
@@ -785,10 +786,11 @@ impl RenderBox {
         debug!("(font style) font families: `%s`", font_families);
 
         let font_size = match my_style.font_size() {
+            CSSFontSizeAbsoluteSize(XXSmall) => { println("<<< CSSFontSizeAbsoluteSize!!!"); 16f },
             CSSFontSizeLength(Px(length)) => length,
             // todo: this is based on a hard coded font size, should be the parent element's font size
             CSSFontSizeLength(Em(length)) => length * 16f, 
-            _ => 16f // px units
+            _ => { println("<<< ???"); 16f } // px units
         };
         debug!("(font style) font size: `%fpx`", font_size);
 
