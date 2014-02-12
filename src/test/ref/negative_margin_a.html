@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Margin collapsing - negative margins adjoining positive margins</title>
+    <style>
+      div div {
+        height: 20px;
+        width: 50px;
+      }
+      #div1 {
+        background: blue;
+        margin-bottom: 2in;
+      }
+      #div2 {
+        background: orange;
+        margin-top: -2in;
+      }
+    </style>
+  </head>
+  <body>
+    <p>Test passes if there is no vertical space between the boxes.</p>
+    <div>
+      <div id="div1"></div>
+      <div id="div2"></div>
+    </div>
+  </body>
+</html>

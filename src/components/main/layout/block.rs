@@ -330,7 +330,11 @@ impl BlockFlow {
                                  &mut collapsible);
 
             let child_node = flow::mut_base(kid);
-            cur_y = cur_y - collapsing;
+            // If the 'collapsing' has negative value, we don't need to move.
+            // Because it is already applied to cur_y.
+            if collapsing >= Au(0) {
+                cur_y = cur_y - collapsing;
+            }
             // At this point, after moving up by `collapsing`, cur_y is at the
             // top margin edge of kid
             child_node.position.origin.y = cur_y;
@@ -339,9 +343,9 @@ impl BlockFlow {
         }
 
         // The bottom margin collapses with its last in-flow block-level child's bottom margin
-        // if the parent has no bottom boder, no bottom padding.
+        // if the parent has no bottom border, no bottom padding.
         collapsing = if bottom_margin_collapsible {
-            if margin_bottom < collapsible {
+            if margin_bottom >= Au(0) && margin_bottom < collapsible {
                 margin_bottom = collapsible;
             }
             collapsible
@@ -362,10 +366,14 @@ impl BlockFlow {
             // infrastructure to make it scrollable.
             Au::max(screen_height, cur_y)
         } else {
-            // (cur_y - collapsing) will get you the bottom content edge
+            // If collapsing has positive value, then (cur_y - collapsing) will be the bottom content edge.
             // top_offset will be at top content edge
             // hence, height = content height
-            cur_y - top_offset - collapsing
+            if collapsing >= Au(0) {
+                cur_y - top_offset - collapsing
+            } else {
+                cur_y - top_offset
+            }
         };
 
         for box_ in self.box_.iter() {
