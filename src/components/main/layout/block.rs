@@ -330,22 +330,31 @@ impl BlockFlow {
                                  &mut collapsible);
 
             let child_node = flow::mut_base(kid);
-            cur_y = cur_y - collapsing;
+            // If `collapsing` has negative value, we don't need to consider this value here.
+            // Because it was already applied to cur_y.
+            println!("\n<<< collapsing: {:?}, collapsible: {:?}", *collapsing, *collapsible);
+            if collapsing >= Au(0) {
+                cur_y = cur_y - collapsing;
+            }
             // At this point, after moving up by `collapsing`, cur_y is at the
             // top margin edge of kid
             child_node.position.origin.y = cur_y;
-            cur_y = cur_y + child_node.position.size.height;
+            if child_node.position.size.height >= Au(0) {
+                cur_y = cur_y + child_node.position.size.height;
+            }
+            println!("+++ cur_y: {:?}, child_node.height: {:?}", cur_y, child_node.position.size.height);
             // At this point, cur_y is at the bottom margin edge of kid
         }
 
         // The bottom margin collapses with its last in-flow block-level child's bottom margin
-        // if the parent has no bottom boder, no bottom padding.
+        // if the parent has no bottom border, no bottom padding.
         collapsing = if bottom_margin_collapsible {
-            if margin_bottom < collapsible {
+            if margin_bottom >= Au(0) && margin_bottom < collapsible {
                 margin_bottom = collapsible;
             }
             collapsible
         } else {
+            println("<<< bottom margin is not collapsible");
             Au::new(0)
         };
 
@@ -365,8 +374,15 @@ impl BlockFlow {
             // (cur_y - collapsing) will get you the bottom content edge
             // top_offset will be at top content edge
             // hence, height = content height
-            cur_y - top_offset - collapsing
+            if collapsing >= Au(0) {
+                println!("+ y: {:?}, top: {:?}, collapsing: {:?}", cur_y, top_offset, collapsing);
+                cur_y - top_offset - collapsing
+            } else {
+                println!("- y: {:?}, top: {:?}, collapsing: {:?}", cur_y, top_offset, collapsing);
+                cur_y - top_offset
+            }
         };
+        println!("height: {:?}, collapsing: {:?}", height, collapsing);
 
         for box_ in self.box_.iter() {
             let style = box_.style();
@@ -431,6 +447,9 @@ impl BlockFlow {
             // Height of margin box + clearance
             height + noncontent_height
         };
+
+        println!("@@@@@@ height: {:?}, noncontent_height: {:?}", height, noncontent_height);
+        println!("@@@@@@ flow.height: {:?}", self.base.position.size.height);
 
         if inorder {
             let extra_height = height - (cur_y - top_offset) + bottom_offset;
@@ -847,12 +866,15 @@ impl Flow for BlockFlow {
         }
 
         for box_ in self.box_.iter() {
+            //println("----------");
             // The top margin collapses with its first in-flow block-level child's
             // top margin if the parent has no top border, no top padding.
             if *first_in_flow && top_margin_collapsible {
                 // If top-margin of parent is less than top-margin of its first child,
                 // the parent box goes down until its top is aligned with the child.
                 if *margin_top < box_.margin.get().top {
+                    //println("child margin top > parent margin top");
+                    //println!(" pmt: {:?}, cmt: {:?}", *margin_top, box_.margin.get().top);
                     // TODO: The position of child floats should be updated and this
                     // would influence clearance as well. See #725
                     let extra_margin = box_.margin.get().top - *margin_top;
@@ -860,10 +882,12 @@ impl Flow for BlockFlow {
                     *margin_top = box_.margin.get().top;
                 }
             }
+            //println!("<<< pmt: {:?}, cmt: {:?}", *margin_top, box_.margin.get().top);
             // The bottom margin of an in-flow block-level element collapses
             // with the top margin of its next in-flow block-level sibling.
             *collapsing = geometry::min(box_.margin.get().top, *collapsible);
             *collapsible = box_.margin.get().bottom;
+            //println!("<<< collapsing: {:?}, collapsible: {:?}", *collapsing, *collapsible);
         }
 
         *first_in_flow = false;
