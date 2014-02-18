@@ -319,6 +319,11 @@ impl BlockFlow {
             margin_bottom = box_.margin.get().bottom;
         }
 
+        // FIXME(sonwow)
+        let debug = true;
+        let mut max_positive_margin = Au::new(0);
+        let mut max_negative_margin = Au::new(0);
+
         // At this point, cur_y is at the content edge of the flow's box_
         for kid in self.base.child_iter() {
             // At this point, cur_y is at bottom margin edge of previous kid
@@ -327,14 +332,21 @@ impl BlockFlow {
                                  &mut margin_top,
                                  &mut top_offset,
                                  &mut collapsing,
-                                 &mut collapsible);
+                                 &mut collapsible,
+                                 &mut max_positive_margin,
+                                 &mut max_negative_margin);
 
             let child_node = flow::mut_base(kid);
-            cur_y = cur_y - collapsing;
+            if debug { println!("- cur_y: {:?}, collapsing: {:?}", cur_y, collapsing); }
+            if collapsing >= Au(0) {
+                cur_y = cur_y - collapsing;
+            }
+            if debug { println!("= cur_y: {:?}", cur_y); }
             // At this point, after moving up by `collapsing`, cur_y is at the
             // top margin edge of kid
             child_node.position.origin.y = cur_y;
             cur_y = cur_y + child_node.position.size.height;
+            if debug { println!("+ cur_y: {:?}, child_height: {:?}", cur_y, child_node.position.size.height); }
             // At this point, cur_y is at the bottom margin edge of kid
         }
 
@@ -378,7 +390,9 @@ impl BlockFlow {
             // for absolutely positioned elems
             height = match MaybeAuto::from_style(style.Box.get().height, height) {
                 Auto => height,
-                Specified(value) => value
+                Specified(value) => {
+                    value
+                }
             };
         }
 
@@ -839,7 +853,9 @@ impl Flow for BlockFlow {
                         margin_top: &mut Au,
                         top_offset: &mut Au,
                         collapsing: &mut Au,
-                        collapsible: &mut Au) {
+                        collapsible: &mut Au,
+                        max_positive_margin: &mut Au,
+                        max_negative_margin: &mut Au) {
         if self.is_float() {
             // Margins between a floated box and any other box do not collapse.
             *collapsing = Au::new(0);
@@ -864,6 +880,12 @@ impl Flow for BlockFlow {
             // with the top margin of its next in-flow block-level sibling.
             *collapsing = geometry::min(box_.margin.get().top, *collapsible);
             *collapsible = box_.margin.get().bottom;
+            *max_positive_margin = geometry::max(max_positive_margin,
+                                                 geometry::max(box_.margin.get().top,
+                                                               box_.margin.get().bottom));
+            *max_negativee_margin = geometry::min(max_negative_margin,
+                                                 geometry::min(box_.margin.get().top,
+                                                               box_.margin.get().bottom));
         }
 
         *first_in_flow = false;

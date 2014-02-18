@@ -110,7 +110,9 @@ pub trait Flow {
                         _margin_top: &mut Au,
                         _top_offset: &mut Au,
                         _collapsing: &mut Au,
-                        _collapsible: &mut Au) {
+                        _collapsible: &mut Au,
+                        _max_positive_margin: &mut Au,
+                        _max_negative_margin: &mut Au) {
         fail!("collapse_margins not yet implemented")
     }
 
