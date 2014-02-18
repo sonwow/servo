@@ -341,7 +341,7 @@ impl BlockFlow {
             if collapsing >= Au(0) {
                 cur_y = cur_y - collapsing;
             }
-            if debug { println!("= cur_y: {:?}", cur_y); }
+            if debug { println!("= cur_y: {:?}, collapsible: {:?}", cur_y, collapsible); }
             // At this point, after moving up by `collapsing`, cur_y is at the
             // top margin edge of kid
             child_node.position.origin.y = cur_y;
@@ -353,7 +353,9 @@ impl BlockFlow {
         // The bottom margin collapses with its last in-flow block-level child's bottom margin
         // if the parent has no bottom boder, no bottom padding.
         collapsing = if bottom_margin_collapsible {
-            if margin_bottom < collapsible {
+            if debug { println!(" MB: {:?}, collapsible: {:?}", margin_bottom, collapsible); }
+            // FIXME(sonwow): need for negative margin bottom
+            if margin_bottom >= Au(0) && margin_bottom < collapsible {
                 margin_bottom = collapsible;
             }
             collapsible
@@ -380,6 +382,10 @@ impl BlockFlow {
             cur_y - top_offset - collapsing
         };
 
+        // FIXME(sonwow)
+        let diff = max_positive_margin + max_negative_margin;
+        if debug { println!("max_pos: {:?}, max_neg: {:?}", max_positive_margin, max_negative_margin); }
+
         for box_ in self.box_.iter() {
             let style = box_.style();
 
@@ -389,9 +395,19 @@ impl BlockFlow {
             // TODO: We need to pass in the correct containing block height
             // for absolutely positioned elems
             height = match MaybeAuto::from_style(style.Box.get().height, height) {
-                Auto => height,
+                Auto => {
+                    if diff >= Au(0) {
+                        height
+                    } else {
+                        height + diff
+                    }
+                }
                 Specified(value) => {
-                    value
+                    if value + diff >= Au(0) {
+                        value
+                    } else {
+                        Au(0)
+                    }
                 }
             };
         }
@@ -445,6 +461,11 @@ impl BlockFlow {
             // Height of margin box + clearance
             height + noncontent_height
         };
+
+        if debug {
+            println!("@ height: {:?}, noncontent_height: {:?}", height, noncontent_height);
+            println!("@@@ Height: {:?}", self.base.position.size.height);
+        }
 
         if inorder {
             let extra_height = height - (cur_y - top_offset) + bottom_offset;
@@ -880,10 +901,10 @@ impl Flow for BlockFlow {
             // with the top margin of its next in-flow block-level sibling.
             *collapsing = geometry::min(box_.margin.get().top, *collapsible);
             *collapsible = box_.margin.get().bottom;
-            *max_positive_margin = geometry::max(max_positive_margin,
+            *max_positive_margin = geometry::max(*max_positive_margin,
                                                  geometry::max(box_.margin.get().top,
                                                                box_.margin.get().bottom));
-            *max_negativee_margin = geometry::min(max_negative_margin,
+            *max_negative_margin = geometry::min(*max_negative_margin,
                                                  geometry::min(box_.margin.get().top,
                                                                box_.margin.get().bottom));
         }
