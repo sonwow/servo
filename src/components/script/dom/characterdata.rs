@@ -10,6 +10,8 @@ use dom::document::AbstractDocument;
 use dom::node::{Node, NodeTypeId};
 use servo_util::str::DOMString;
 
+use std::mem::size_of_val;
+
 pub struct CharacterData {
     node: Node,
     data: DOMString,
@@ -17,10 +19,12 @@ pub struct CharacterData {
 
 impl CharacterData {
     pub fn new_inherited(id: NodeTypeId, data: DOMString, document: AbstractDocument) -> CharacterData {
-        CharacterData {
+        let data = CharacterData {
             node: Node::new_inherited(id, document),
             data: data
-        }
+        };
+        println!("[DOM] CharacterData: {:?}", size_of_val(&data));
+        data
     }
     
     pub fn Data(&self) -> DOMString {

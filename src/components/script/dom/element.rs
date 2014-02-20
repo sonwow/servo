@@ -28,6 +28,8 @@ use std::ascii::StrAsciiExt;
 use std::cast;
 use std::unstable::raw::Box;
 
+use std::mem::size_of_val;
+
 pub struct Element {
     node: Node,
     tag_name: DOMString,     // TODO: This should be an atom, not a DOMString.
@@ -127,14 +129,16 @@ pub enum ElementTypeId {
 
 impl Element {
     pub fn new_inherited(type_id: ElementTypeId, tag_name: ~str, namespace: Namespace, document: AbstractDocument) -> Element {
-        Element {
+        let element = Element {
             node: Node::new_inherited(ElementNodeTypeId(type_id), document),
             tag_name: tag_name,
             namespace: namespace,
             attrs: ~[],
             attr_list: None,
             style_attribute: None,
-        }
+        };
+        println!("[DOM] Element: {:?}", size_of_val(&element));
+        element
     }
 
     pub fn html_element_in_html_document(&self) -> bool {

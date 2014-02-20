@@ -31,6 +31,8 @@ use std::libc::uintptr_t;
 use std::util;
 use std::unstable::raw::Box;
 
+use std::mem::size_of_val;
+
 //
 // The basic Node structure
 //
@@ -914,7 +916,7 @@ impl Node {
     }
 
     fn new_(type_id: NodeTypeId, doc: Option<AbstractDocument>) -> Node {
-        Node {
+        let node = Node {
             eventtarget: EventTarget::new_inherited(NodeTypeId),
             type_id: type_id,
 
@@ -932,7 +934,9 @@ impl Node {
             flags: NodeFlags::new(type_id),
 
             layout_data: LayoutDataRef::new(),
-        }
+        };
+        //println!("[DOM] node: {:?}", size_of_val(&node));
+        node
     }
 
     /// Sends layout data, if any, back to the script task to be destroyed.

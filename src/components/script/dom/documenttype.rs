@@ -7,6 +7,8 @@ use dom::document::AbstractDocument;
 use dom::node::{AbstractNode, Node, DoctypeNodeTypeId};
 use servo_util::str::DOMString;
 
+use std::mem::size_of_val;
+
 /// The `DOCTYPE` tag.
 pub struct DocumentType {
     node: Node,
@@ -21,12 +23,14 @@ impl DocumentType {
                          system_id: Option<DOMString>,
                          document: AbstractDocument)
             -> DocumentType {
-        DocumentType {
+        let docType = DocumentType {
             node: Node::new_inherited(DoctypeNodeTypeId, document),
             name: name,
             public_id: public_id.unwrap_or(~""),
             system_id: system_id.unwrap_or(~"")
-        }
+        };
+        println!("[DOM] DocumentType: {:?}", size_of_val(&docType));
+        docType
     }
 
     pub fn new(name: DOMString,

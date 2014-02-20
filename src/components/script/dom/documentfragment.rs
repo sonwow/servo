@@ -8,6 +8,8 @@ use dom::document::AbstractDocument;
 use dom::node::{AbstractNode, DocumentFragmentNodeTypeId, Node};
 use dom::window::Window;
 
+use std::mem::size_of_val;
+
 pub struct DocumentFragment {
     node: Node,
 }
@@ -15,9 +17,11 @@ pub struct DocumentFragment {
 impl DocumentFragment {
     /// Creates a new DocumentFragment.
     pub fn new_inherited(document: AbstractDocument) -> DocumentFragment {
-        DocumentFragment {
+        let frag = DocumentFragment {
             node: Node::new_inherited(DocumentFragmentNodeTypeId, document),
-        }
+        };
+        println!("[DOM] DocumentFragment: {:?}", size_of_val(&frag));
+        frag
     }
 
     pub fn new(document: AbstractDocument) -> AbstractNode {

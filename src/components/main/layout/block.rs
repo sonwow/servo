@@ -15,10 +15,12 @@ use layout::model::{MaybeAuto, Specified, Auto, specified_or_none, specified};
 use layout::wrapper::ThreadSafeLayoutNode;
 
 use std::cell::RefCell;
+use std::mem::size_of_val;
 use geom::{Point2D, Rect, SideOffsets2D, Size2D};
 use gfx::display_list::{DisplayList, DisplayListCollection};
 use servo_util::geometry::Au;
 use servo_util::geometry;
+
 
 /// Information specific to floated blocks.
 pub struct FloatedBlockInfo {
@@ -70,13 +72,16 @@ pub struct BlockFlow {
 impl BlockFlow {
     pub fn from_node(constructor: &mut FlowConstructor, node: ThreadSafeLayoutNode, is_fixed: bool)
                      -> BlockFlow {
-        BlockFlow {
+        let flow = BlockFlow {
             base: BaseFlow::new(constructor.next_flow_id(), node),
             box_: Some(Box::new(constructor, node)),
             is_root: false,
             is_fixed: is_fixed,
             float: None
-        }
+        };
+        println!("<-- Blockflow.box: {:?}", size_of_val(&flow.box_));
+        println!("<<< Blockflow: {:?}", size_of_val(&flow));
+        flow
     }
 
     pub fn float_from_node(constructor: &mut FlowConstructor,

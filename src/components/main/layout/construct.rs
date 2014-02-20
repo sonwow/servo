@@ -46,6 +46,8 @@ use std::cell::RefCell;
 use std::util;
 use std::num::Zero;
 
+use std::mem::size_of_val;
+
 /// The results of flow construction for a DOM node.
 pub enum ConstructionResult {
     /// This node contributes nothing at all (`display: none`). Alternately, this is what newly
@@ -278,11 +280,13 @@ impl<'fc> FlowConstructor<'fc> {
                                   boxes: ~[Box],
                                   flow: &mut ~Flow,
                                   node: ThreadSafeLayoutNode) {
-        if boxes.len() == 0 {
+        let len = boxes.len();
+        if len == 0 {
             return
         }
 
         let mut inline_flow = ~InlineFlow::from_boxes(self.next_flow_id(), node, boxes) as ~Flow;
+        println!("+++ inline.boxes.len: {:?}", len);
         inline_flow.mark_as_leaf(self.layout_context.flow_leaf_set.get());
         TextRunScanner::new().scan_for_runs(self.font_context, inline_flow);
 
@@ -537,6 +541,7 @@ impl<'fc> FlowConstructor<'fc> {
                                         boxes: &~[&Box],
                                         parent_node: ThreadSafeLayoutNode) {
         let parent_box = Box::new(self, parent_node);
+        println!("<<< Box: {:?}", size_of_val(&parent_box));
         let font_style = parent_box.font_style();
         let font_group = self.font_context.get_resolved_font_for_style(&font_style);
         let (font_ascent,font_descent) = font_group.borrow().with_mut( |fg| {

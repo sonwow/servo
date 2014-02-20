@@ -24,6 +24,8 @@ use std::u16;
 use std::util;
 use style::computed_values::{text_align, vertical_align, white_space};
 
+use std::mem::size_of_val;
+
 /// Lineboxes are represented as offsets into the child list, rather than
 /// as an object that "owns" boxes. Choosing a different set of line
 /// breaks requires a new list of offsets, and possibly some splitting and
@@ -467,12 +469,14 @@ pub struct InlineFlow {
 
 impl InlineFlow {
     pub fn from_boxes(id: int, node: ThreadSafeLayoutNode, boxes: ~[Box]) -> InlineFlow {
-        InlineFlow {
+        let flow = InlineFlow {
             base: BaseFlow::new(id, node),
             boxes: boxes,
             lines: ~[],
             elems: ElementMapping::new(),
-        }
+        };
+        println!("<<< InlineFlow: {:?}", size_of_val(&flow));
+        flow
     }
 
     pub fn teardown(&mut self) {

@@ -31,6 +31,8 @@ use font_context::{FontContext, FontContextInfo};
 use opts::Opts;
 use render_context::RenderContext;
 
+use std::mem::size_of_val;
+
 pub struct RenderLayer<T> {
     display_list_collection: Arc<DisplayListCollection<T>>,
     size: Size2D<uint>,
@@ -342,13 +344,14 @@ impl<C: RenderListener + Send,T:Send+Freeze> RenderTask<C,T> {
                                             width as i32 * 4);
                                     native_surface.mark_wont_leak();
 
-                                    ~LayerBuffer {
+                                    let buffer = ~LayerBuffer {
                                         native_surface: native_surface,
                                         rect: tile.page_rect,
                                         screen_pos: tile.screen_rect,
                                         resolution: scale,
                                         stride: (width * 4) as uint
-                                    }
+                                    };
+                                    buffer
                                 }
                             };
 
@@ -372,16 +375,18 @@ impl<C: RenderListener + Send,T:Send+Freeze> RenderTask<C,T> {
                                 NativeSurfaceAzureMethods::from_azure_surface(native_surface);
                             native_surface.mark_wont_leak();
 
-                            ~LayerBuffer {
+                            let buffer = ~LayerBuffer {
                                 native_surface: native_surface,
                                 rect: tile.page_rect,
                                 screen_pos: tile.screen_rect,
                                 resolution: scale,
                                 stride: (width * 4) as uint
-                            }
+                            };
+                            buffer
                         }
                     };
                     
+                    println!("[Render] buffer: {:?}", size_of_val(buffer));
                     new_buffers.push(buffer);
                 }
             });
@@ -389,6 +394,7 @@ impl<C: RenderListener + Send,T:Send+Freeze> RenderTask<C,T> {
             let layer_buffer_set = ~LayerBufferSet {
                 buffers: new_buffers,
             };
+            println!("[Render] LayerBufferSet: {:?}", size_of_val(layer_buffer_set));
 
             debug!("render_task: returning surface");
             if self.paint_permission {

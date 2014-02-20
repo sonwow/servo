@@ -19,6 +19,8 @@ use std::libc::uintptr_t;
 use std::vec::VecIterator;
 use style::ComputedValues;
 
+use std::mem::size_of_val;
+
 /// A range of nodes.
 pub struct NodeRange {
     node: OpaqueNode,
@@ -152,14 +154,16 @@ pub struct PrivateLayoutData {
 impl PrivateLayoutData {
     /// Creates new layout data.
     pub fn new() -> PrivateLayoutData {
-        PrivateLayoutData {
+        let data = PrivateLayoutData {
             before_style: None,
             style: None,
             after_style: None,
             restyle_damage: None,
             flow_construction_result: NoConstructionResult,
             parallel: DomParallelInfo::new(),
-        }
+        };
+        //println!("--- PrivateLayoutData: {:?}", size_of_val(&data));
+        data
     }
 }
 

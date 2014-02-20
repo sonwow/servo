@@ -27,6 +27,8 @@ use std::cast::transmute_region;
 use std::vec::VecIterator;
 use style::computed_values::border_style;
 
+use std::mem::size_of_val;
+
 pub struct DisplayListCollection<E> {
     lists: ~[DisplayList<E>]
 }
@@ -101,6 +103,7 @@ impl<E> DisplayList<E> {
     pub fn append_item(&mut self, item: DisplayItem<E>) {
         // FIXME(Issue #150): crashes
         //debug!("Adding display item {:u}: {}", self.len(), item);
+        println!("[Render] DisplayItem: {:?}", size_of_val(&item));
         self.list.push(item)
     }
 

@@ -34,6 +34,8 @@ use std::cast;
 use std::hashmap::HashMap;
 use std::unstable::raw::Box;
 
+use std::mem::size_of_val;
+
 #[deriving(Eq)]
 pub enum DocumentTypeId {
     PlainDocumentTypeId,
@@ -129,7 +131,7 @@ impl Document {
             HTML => HTMLDocumentTypeId,
             SVG | XML => PlainDocumentTypeId
         };
-        Document {
+        let doc = Document {
             node: Node::new_without_doc(DocumentNodeTypeId(node_type)),
             reflector_: Reflector::new(),
             window: window,
@@ -153,7 +155,9 @@ impl Document {
             quirks_mode: NoQuirks,
             // http://dom.spec.whatwg.org/#concept-document-encoding
             encoding_name: ~"utf-8",
-        }
+        };
+        println!("[DOM] Document: {:?}", size_of_val(&doc));
+        doc
     }
 
     pub fn new(window: @mut Window, url: Option<Url>, doctype: DocumentType, content_type: Option<DOMString>) -> AbstractDocument {

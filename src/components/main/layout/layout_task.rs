@@ -59,6 +59,8 @@ use std::util;
 use style::{AuthorOrigin, ComputedValues, Stylesheet, Stylist};
 use style;
 
+use std::mem::size_of_val;
+
 /// Information needed by the layout task.
 pub struct LayoutTask {
     /// The ID of the pipeline that we belong to.
@@ -329,7 +331,7 @@ impl LayoutTask {
             profiler_chan: self.profiler_chan.clone(),
         };
 
-        LayoutContext {
+        let ctx = LayoutContext {
             image_cache: self.local_image_cache.clone(),
             screen_size: self.screen_size.clone(),
             constellation_chan: self.constellation_chan.clone(),
@@ -340,7 +342,9 @@ impl LayoutTask {
             stylist: &*self.stylist,
             initial_css_values: self.initial_css_values.clone(),
             reflow_root: OpaqueNode::from_layout_node(reflow_root),
-        }
+        };
+        println!("<<< LayoutContext: {:?}", size_of_val(&ctx));
+        ctx
     }
 
     /// Receives and dispatches messages from the port.
@@ -625,6 +629,7 @@ impl LayoutTask {
             }
         });
 
+        // sonwow
         // Build the display list if necessary, and send it to the renderer.
         if data.goal == ReflowForDisplay {
             profile(time::LayoutDispListBuildCategory, self.profiler_chan.clone(), || {
@@ -672,6 +677,8 @@ impl LayoutTask {
                                  root_size.height.to_nearest_px() as uint),
                     color: color
                 };
+
+                println!("[Render] RenderLayer: {:?}", size_of_val(&render_layer));
 
                 self.display_list_collection = Some(display_list_collection.clone());
 
